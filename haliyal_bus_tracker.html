@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haliyal Bus Stand — Ticket & Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --saffron:#FF6B1A; --saffron2:#FF8C42; --deep:#1A0A00; --ink:#2C1A00;
+  --card:#FFF8F0; --gold:#D4A017; --gold2:#F0C040;
+  --green:#2D7A3A; --green2:#3DAA50; --red:#C0392B;
+  --sky:#1565C0; --text:#1A0A00; --muted:#7A5C3A;
+  --border:#E8C89A; --white:#FFFDF8;
+  --shadow:0 4px 24px rgba(26,10,0,0.15); --shadow-sm:0 2px 8px rgba(26,10,0,0.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Baloo 2',sans-serif;background:var(--deep);min-height:100vh;color:var(--text);overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background-image:radial-gradient(circle at 20% 20%,rgba(255,107,26,.12) 0%,transparent 50%),
+  radial-gradient(circle at 80% 80%,rgba(212,160,23,.10) 0%,transparent 50%);pointer-events:none;}
+.page{display:none;position:relative;z-index:1;min-height:100vh;}
+.page.active{display:block;}
+
+/* ── HEADER ── */
+.site-header{background:linear-gradient(135deg,var(--saffron) 0%,#C44A00 100%);
+  position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(255,107,26,.5);}
+.site-header::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.04) 20px,rgba(255,255,255,.04) 40px);}
+.header-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;max-width:1100px;margin:0 auto;gap:12px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:14px;}
+.bus-icon{width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
+.brand-text h1{font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+.brand-text p{font-size:.72rem;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;}
+.header-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;
+  padding:6px 14px;color:#fff;font-size:.75rem;letter-spacing:1px;backdrop-filter:blur(4px);}
+.header-badge span{font-weight:700;color:var(--gold2);}
+.nav-back-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;
+  color:#fff;font-family:'Baloo 2',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.nav-back-btn:hover{background:rgba(255,255,255,.22);}
+
+/* ── PAGE 1 ── */
+.booking-wrap{max-width:1020px;margin:0 auto;padding:28px 20px;}
+.section-label{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.section-label .line{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,107,26,.5),transparent);}
+.section-label h2{font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--saffron2);white-space:nowrap;}
+
+.name-entry-card{background:var(--card);border:2px solid var(--border);border-radius:16px;
+  padding:24px 28px;margin-bottom:24px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.name-entry-card::after{content:'🚌';position:absolute;right:20px;bottom:10px;font-size:60px;opacity:.07;transform:scaleX(-1);}
+.name-entry-card h2{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:4px;}
+.name-entry-card p{color:var(--muted);font-size:.8rem;margin-bottom:16px;}
+.name-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.field-group{flex:1;min-width:180px;}
+.field-group label{display:block;font-size:.68rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.fi{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;
+  font-family:'Baloo 2',sans-serif;font-size:.9rem;background:#fff;color:var(--text);outline:none;transition:border .2s;}
+.fi:focus{border-color:var(--saffron);}
+
+.buses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:26px;}
+.bus-card{background:var(--card);border:2px solid var(--border);border-radius:16px;overflow:hidden;
+  cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;box-shadow:var(--shadow-sm);}
+.bus-card:hover:not(.full){transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--saffron2);}
+.bus-card.selected{border-color:var(--saffron);box-shadow:0 0 0 4px rgba(255,107,26,.2),var(--shadow);}
+.bus-card.full{opacity:.5;cursor:not-allowed;}
+.bc-top{background:linear-gradient(135deg,var(--saffron) 0%,#C44A00 100%);padding:14px 18px 12px;
+  display:flex;justify-content:space-between;align-items:flex-start;}
+.bc-id{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.75);}
+.bc-status{font-size:.62rem;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-weight:600;}
+.bc-status.avail{background:rgba(255,255,255,.25);color:#fff;}
+.bc-status.nearly{background:rgba(255,200,0,.35);color:#fff800;}
+.bc-status.full-s{background:rgba(200,0,0,.35);color:#ffa0a0;}
+.bc-route{display:flex;align-items:center;gap:8px;padding:3px 0 0;}
+.bc-route .from{font-size:.75rem;color:rgba(255,255,255,.6);}
+.bc-route .arrow{color:rgba(255,255,255,.5);}
+.bc-route .to{font-size:1.05rem;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.3);}
+.bc-body{padding:13px 18px 15px;}
+.bc-info-row{display:flex;margin-bottom:10px;}
+.bc-info-item{flex:1;text-align:center;padding:7px 4px;border-right:1px solid var(--border);}
+.bc-info-item:last-child{border-right:none;}
+.bc-info-item .val{font-size:.9rem;font-weight:700;color:var(--ink);}
+.bc-info-item .lbl{font-size:.58rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+.seat-bar-wrap{margin-bottom:12px;}
+.seat-bar-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:4px;}
+.seat-bar{height:6px;background:#e8ddd0;border-radius:4px;overflow:hidden;}
+.seat-bar-fill{height:100%;border-radius:4px;transition:width .5s;background:linear-gradient(90deg,var(--green2),var(--green));}
+.seat-bar-fill.warn{background:linear-gradient(90deg,#F0A030,#D4800A);}
+.seat-bar-fill.danger{background:linear-gradient(90deg,#E05050,#C03030);}
+.select-btn{width:100%;padding:9px;border:2px solid var(--saffron);border-radius:10px;background:transparent;
+  color:var(--saffron);font-family:'Baloo 2',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.select-btn:hover:not(:disabled){background:var(--saffron);color:#fff;}
+.bus-card.selected .select-btn{background:var(--saffron);color:#fff;}
+
+.confirm-bar{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:18px 22px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.confirm-bar .cb-info{flex:1;min-width:120px;}
+.confirm-bar .cb-info h3{font-size:.72rem;color:var(--muted);margin-bottom:2px;}
+.confirm-bar .cb-info p{font-size:.95rem;font-weight:700;color:var(--ink);}
+.confirm-btn{padding:12px 28px;background:linear-gradient(135deg,var(--saffron) 0%,#C44A00 100%);
+  color:#fff;border:none;border-radius:12px;font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;
+  cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+  box-shadow:0 4px 16px rgba(255,107,26,.4);transition:all .2s;}
+.confirm-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,26,.5);}
+.confirm-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+/* ── TICKET MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(26,10,0,.75);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.ticket{background:#fff;border-radius:20px;width:100%;max-width:450px;overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,.4);animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:none;opacity:1;}}
+.ticket-top{background:linear-gradient(135deg,var(--saffron) 0%,#C44A00 100%);padding:22px 28px;position:relative;overflow:hidden;}
+.ticket-top::before{content:'🚌';position:absolute;right:-8px;bottom:-12px;font-size:80px;opacity:.12;transform:scaleX(-1);}
+.ticket-top h2{color:#fff;font-size:1.05rem;font-weight:800;letter-spacing:1px;}
+.ticket-top .t-sub{color:rgba(255,255,255,.7);font-size:.72rem;margin-bottom:4px;}
+.ticket-notch{display:flex;background:#f5f0ea;}
+.notch-left,.notch-right{width:18px;height:18px;border-radius:50%;background:var(--deep);margin-top:-9px;}
+.notch-line{flex:1;border-top:2px dashed #c8b898;align-self:center;}
+.ticket-body{padding:18px 28px 20px;background:#fff;}
+.ticket-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0e8da;font-size:.85rem;}
+.ticket-row .tk{color:#8a6a3a;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;}
+.ticket-row .tv{font-weight:700;color:var(--ink);}
+.seat-big{text-align:center;padding:14px 0 18px;}
+.seat-big .seat-num{font-size:3rem;font-weight:800;color:var(--saffron);line-height:1;}
+.seat-big .seat-lbl{font-size:.72rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.ticket-actions{display:flex;gap:10px;padding:0 28px 22px;}
+.ta-btn{flex:1;padding:10px;border-radius:10px;font-family:'Baloo 2',sans-serif;font-size:.82rem;font-weight:700;
+  cursor:pointer;border:2px solid var(--border);transition:all .2s;}
+.ta-btn.primary{background:var(--saffron);color:#fff;border-color:var(--saffron);}
+.ta-btn.primary:hover{background:#C44A00;}
+.ta-btn.secondary{background:transparent;color:var(--muted);}
+.ta-btn.secondary:hover{border-color:var(--saffron);color:var(--saffron);}
+
+/* ── PAGE 2 ── */
+.dashboard-wrap{max-width:1100px;margin:0 auto;padding:24px 20px;
+  display:grid;grid-template-columns:270px 1fr;gap:20px;}
+@media(max-width:720px){.dashboard-wrap{grid-template-columns:1fr;}}
+.d-sidebar{display:flex;flex-direction:column;gap:14px;}
+
+.bus-select-panel{background:var(--card);border:2px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.bsp-title{background:linear-gradient(135deg,var(--ink) 0%,#3D2800 100%);padding:11px 16px;
+  font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,200,100,.85);}
+.bsp-item{padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+  display:flex;justify-content:space-between;align-items:center;}
+.bsp-item:last-child{border-bottom:none;}
+.bsp-item:hover{background:rgba(255,107,26,.07);}
+.bsp-item.active{background:rgba(255,107,26,.12);border-left:3px solid var(--saffron);}
+.bsp-item .bi-id{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--saffron);}
+.bsp-item .bi-dest{font-size:.8rem;font-weight:600;color:var(--ink);}
+.bsp-item .bi-badge{font-size:.6rem;padding:2px 7px;border-radius:10px;font-weight:600;
+  background:rgba(45,122,58,.15);color:var(--green);}
+.bsp-item .bi-badge.full-b{background:rgba(192,57,43,.15);color:var(--red);}
+
+.q-mem-card{background:var(--deep);border:2px solid #3D2800;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.q-mem-title{padding:9px 14px;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--saffron2);border-bottom:1px solid #3D2800;}
+.q-mem-body{padding:12px 14px;}
+.q-mem-info{display:flex;justify-content:space-between;margin-bottom:8px;font-size:.65rem;color:#9A6A3A;}
+.q-mem-info span{color:var(--saffron2);font-family:'JetBrains Mono',monospace;}
+.q-slots{display:flex;flex-wrap:wrap;gap:4px;}
+.qs{width:22px;height:22px;border-radius:3px;border:1px solid #3D2800;
+  display:flex;align-items:center;justify-content:center;font-size:.5rem;
+  font-family:'JetBrains Mono',monospace;color:#5A3A1A;transition:all .3s;}
+.qs.occ{background:rgba(255,107,26,.28);border-color:var(--saffron);color:var(--saffron2);}
+
+.log-card{background:var(--deep);border:2px solid #3D2800;border-radius:14px;overflow:hidden;}
+.log-title{padding:8px 14px;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--saffron2);border-bottom:1px solid #3D2800;}
+.log-body{padding:10px 14px;max-height:120px;overflow-y:auto;
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;line-height:1.9;}
+.log-body::-webkit-scrollbar{width:3px;}
+.log-body::-webkit-scrollbar-thumb{background:#5A3A1A;}
+.log-enq{color:#3DAA50;}.log-deq{color:#FF8C42;}.log-err{color:#E05050;}.log-inf{color:#6090D0;}
+
+.d-main{display:flex;flex-direction:column;gap:14px;}
+
+.bus-info-header{background:var(--card);border:2px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.bih-top{background:linear-gradient(135deg,var(--saffron) 0%,#C44A00 100%);padding:16px 20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.bih-left h2{color:#fff;font-size:1.05rem;font-weight:800;}
+.bih-left p{color:rgba(255,255,255,.7);font-size:.75rem;}
+.bih-stats{display:flex;gap:16px;}
+.bih-stat{text-align:center;}
+.bih-stat .sv{font-size:1.2rem;font-weight:800;color:#fff;}
+.bih-stat .sl{font-size:.58rem;color:rgba(255,255,255,.65);letter-spacing:1px;text-transform:uppercase;}
+.bih-body{padding:12px 20px;display:flex;gap:18px;flex-wrap:wrap;}
+.bih-detail{font-size:.78rem;display:flex;gap:6px;align-items:center;}
+.bih-detail .dkey{color:var(--muted);}
+.bih-detail .dval{font-weight:700;color:var(--ink);}
+
+.add-passenger-card{background:var(--card);border:2px solid var(--border);border-radius:16px;
+  padding:16px 20px;box-shadow:var(--shadow-sm);}
+.apc-title{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:11px;}
+.apc-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+
+.pax-list-card{background:var(--card);border:2px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.plc-header{padding:12px 18px;background:rgba(26,10,0,.04);border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;}
+.plc-header h3{font-size:.82rem;font-weight:700;color:var(--ink);}
+.plc-header .count{font-size:.72rem;color:var(--muted);}
+.pax-table{width:100%;border-collapse:collapse;}
+.pax-table th{text-align:left;padding:9px 16px;font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);background:rgba(26,10,0,.03);border-bottom:1px solid var(--border);}
+.pax-table td{padding:10px 16px;border-bottom:1px solid #f0e8da;font-size:.82rem;}
+.pax-table tr:last-child td{border-bottom:none;}
+.pax-table tr:hover td{background:rgba(255,107,26,.04);}
+.pax-name{font-weight:600;color:var(--ink);}
+.pax-seat-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--saffron),#C44A00);color:#fff;font-weight:800;font-size:.82rem;
+  box-shadow:0 2px 8px rgba(255,107,26,.35);}
+.pax-time{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);}
+.remove-btn{padding:5px 11px;border-radius:7px;border:1.5px solid #e0c0b0;background:transparent;
+  color:var(--red);font-family:'Baloo 2',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.remove-btn:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.empty-msg{text-align:center;padding:44px 20px;color:var(--muted);font-size:.85rem;}
+.empty-msg .em-icon{font-size:2.2rem;margin-bottom:8px;}
+
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:12px;font-size:.82rem;font-weight:600;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;
+  transition:all .3s;pointer-events:none;border-left:4px solid var(--saffron);max-width:300px;}
+.toast.show{transform:none;opacity:1;}
+.toast.success{border-left-color:var(--green2);}
+.toast.error{border-left-color:var(--red);}
+
+.red-btn{padding:12px 20px;background:linear-gradient(135deg,#C0392B 0%,#900 100%);color:#fff;border:none;border-radius:12px;
+  font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;letter-spacing:1px;
+  box-shadow:0 4px 16px rgba(192,57,43,.4);transition:all .2s;white-space:nowrap;}
+.red-btn:hover{transform:translateY(-2px);}
+</style>
+</head>
+<body>
+
+<!-- ══════ PAGE 1: BOOKING ══════ -->
+<div id="page1" class="page active">
+  <div class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="bus-icon">🚌</div>
+        <div class="brand-text">
+          <h1>HALIYAL BUS STAND</h1>
+          <p>Karnataka State Road Transport · Circular Queue System</p>
+        </div>
+      </div>
+      <div class="header-badge">Passenger: <span id="hdr-pax">—</span></div>
+    </div>
+  </div>
+
+  <div class="booking-wrap">
+
+    <div class="name-entry-card">
+      <h2>👤 Passenger Entry</h2>
+      <p>Enter your name below. Once you select a bus, the Circular Queue will assign you a seat number automatically.</p>
+      <div class="name-row">
+        <div class="field-group">
+          <label>Your Full Name *</label>
+          <input class="fi" id="pax-name" placeholder="e.g. Ramesh Kumar Patil" oninput="onNameChange()">
+        </div>
+        <div class="field-group" style="max-width:190px">
+          <label>Phone (optional)</label>
+          <input class="fi" id="pax-phone" placeholder="98xxx xxxxx">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">
+      <div class="line"></div>
+      <h2>🛣️ Choose Your Bus — All depart from Haliyal</h2>
+      <div class="line" style="transform:scaleX(-1)"></div>
+    </div>
+
+    <div class="buses-grid" id="buses-grid"></div>
+
+    <div class="confirm-bar" id="confirm-bar" style="display:none">
+      <div class="cb-info"><h3>Passenger</h3><p id="cb-pax">—</p></div>
+      <div class="cb-info"><h3>Bus ID</h3><p id="cb-bus">—</p></div>
+      <div class="cb-info"><h3>Destination</h3><p id="cb-dest">—</p></div>
+      <div class="cb-info"><h3>Fare</h3><p id="cb-fare">—</p></div>
+      <button class="confirm-btn" onclick="bookSeat()">🎟️ BOOK SEAT</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ PAGE 2: DASHBOARD ══════ -->
+<div id="page2" class="page">
+  <div class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="bus-icon">📡</div>
+        <div class="brand-text">
+          <h1>BUS DASHBOARD</h1>
+          <p>Passenger Management · Circular Queue View</p>
+        </div>
+      </div>
+      <button class="nav-back-btn" onclick="goPage(1)">← Back to Booking</button>
+    </div>
+  </div>
+
+  <div class="dashboard-wrap">
+
+    <div class="d-sidebar">
+      <div class="bus-select-panel">
+        <div class="bsp-title">Fleet — Departing Haliyal</div>
+        <div id="bsp-list"></div>
+      </div>
+      <div class="q-mem-card">
+        <div class="q-mem-title">◈ Circular Queue — <span id="qm-bid" style="color:var(--saffron2)">—</span></div>
+        <div class="q-mem-body">
+          <div class="q-mem-info">front=<span id="qm-front">0</span> &nbsp;size=<span id="qm-size">0</span>/20</div>
+          <div class="q-slots" id="qm-slots"></div>
+          <div style="font-size:.58rem;color:#5A3A1A;margin-top:6px;"><span style="color:var(--saffron)">■</span> occupied &nbsp;<span style="color:#5A3A1A">□</span> free</div>
+        </div>
+      </div>
+      <div class="log-card">
+        <div class="log-title">◌ C Backend Simulation Log</div>
+        <div class="log-body" id="log-body"></div>
+      </div>
+    </div>
+
+    <div class="d-main">
+      <div class="bus-info-header">
+        <div class="bih-top">
+          <div class="bih-left">
+            <h2 id="bih-title">—</h2>
+            <p id="bih-sub">Select a bus from the left</p>
+          </div>
+          <div class="bih-stats">
+            <div class="bih-stat"><div class="sv" id="bih-occ">0</div><div class="sl">Occupied</div></div>
+            <div class="bih-stat"><div class="sv" id="bih-free">20</div><div class="sl">Free</div></div>
+            <div class="bih-stat"><div class="sv">20</div><div class="sl">Capacity</div></div>
+          </div>
+        </div>
+        <div class="bih-body">
+          <div class="bih-detail"><span class="dkey">Route:</span><span class="dval" id="bih-route">—</span></div>
+          <div class="bih-detail"><span class="dkey">Departure:</span><span class="dval" id="bih-dep">—</span></div>
+          <div class="bih-detail"><span class="dkey">Distance:</span><span class="dval" id="bih-dist">—</span></div>
+          <div class="bih-detail"><span class="dkey">Fare:</span><span class="dval" id="bih-fare">—</span></div>
+        </div>
+      </div>
+
+      <div class="add-passenger-card">
+        <div class="apc-title">⊕ Add / Remove Passenger</div>
+        <div class="apc-row">
+          <div class="field-group">
+            <label>Passenger Name</label>
+            <input class="fi" id="add-name" placeholder="Full name...">
+          </div>
+          <button class="confirm-btn" onclick="addPassenger()">+ Add Passenger</button>
+          <button class="red-btn" onclick="dequeuePassenger()">↑ Dequeue Front</button>
+        </div>
+      </div>
+
+      <div class="pax-list-card">
+        <div class="plc-header">
+          <h3>🪑 Seated Passengers</h3>
+          <span class="count" id="pax-count">0 passengers</span>
+        </div>
+        <div id="pax-table-wrap"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ TICKET MODAL ══════ -->
+<div class="modal-overlay" id="ticket-modal">
+  <div class="ticket">
+    <div class="ticket-top">
+      <div class="t-sub">Karnataka State Road Transport Corporation</div>
+      <h2>🎟️ BOARDING PASS</h2>
+    </div>
+    <div class="ticket-notch">
+      <div class="notch-left"></div>
+      <div class="notch-line"></div>
+      <div class="notch-right"></div>
+    </div>
+    <div class="ticket-body">
+      <div class="seat-big">
+        <div class="seat-num" id="tk-seat">—</div>
+        <div class="seat-lbl">Your Seat No. · Circular Queue Slot</div>
+      </div>
+      <div class="ticket-row"><span class="tk">Passenger</span><span class="tv" id="tk-name">—</span></div>
+      <div class="ticket-row"><span class="tk">Bus ID</span><span class="tv" id="tk-busid">—</span></div>
+      <div class="ticket-row"><span class="tk">From</span><span class="tv">Haliyal Bus Stand</span></div>
+      <div class="ticket-row"><span class="tk">To</span><span class="tv" id="tk-to">—</span></div>
+      <div class="ticket-row"><span class="tk">Departure</span><span class="tv" id="tk-dep">—</span></div>
+      <div class="ticket-row"><span class="tk">Fare</span><span class="tv" id="tk-fare">—</span></div>
+      <div class="ticket-row"><span class="tk">Time</span><span class="tv" id="tk-time">—</span></div>
+    </div>
+    <div class="ticket-actions">
+      <button class="ta-btn primary" onclick="goToDashboard()">📡 View Dashboard</button>
+      <button class="ta-btn secondary" onclick="closeTicket()">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CIRCULAR QUEUE BACKEND  (C logic, JavaScript mirror)
+   Mirrors bus_backend.c exactly:
+     - seats[MAX_SEATS] array per bus
+     - pq_enqueue: first-free-slot insertion
+     - pq_dequeue: front-pointer removal
+     - pq_remove_by_name
+   ═══════════════════════════════════════════════════ */
+const MAX_SEATS = 20;
+
+function mkQ() {
+  return {
+    seats: Array.from({length:MAX_SEATS},(_,i)=>({seat_num:i+1,name:'',boarded_at:'',is_occupied:false})),
+    front:0, size:0, capacity:MAX_SEATS
+  };
+}
+
+function pq_enqueue(pq, name) {
+  if (pq.size >= pq.capacity) return -1;
+  for (let i=0; i<pq.capacity; i++) {
+    if (!pq.seats[i].is_occupied) {
+      pq.seats[i] = {seat_num:i+1, name, boarded_at:ts(), is_occupied:true};
+      pq.size++;
+      return i+1;
+    }
+  }
+  return -1;
+}
+
+function pq_dequeue(pq) {
+  if (pq.size===0) return null;
+  for (let i=0; i<pq.capacity; i++) {
+    let idx = (pq.front+i) % pq.capacity;
+    if (pq.seats[idx].is_occupied) {
+      const p = {...pq.seats[idx]};
+      pq.seats[idx].is_occupied=false; pq.seats[idx].name='';
+      pq.front = (idx+1) % pq.capacity;
+      pq.size--;
+      return p;
+    }
+  }
+  return null;
+}
+
+function pq_remove_by_name(pq, name) {
+  for (let i=0; i<pq.capacity; i++) {
+    if (pq.seats[i].is_occupied && pq.seats[i].name===name) {
+      pq.seats[i].is_occupied=false; pq.seats[i].name='';
+      pq.size--; return i+1;
+    }
+  }
+  return -1;
+}
+
+/* ═══ Fleet data ═══ */
+const fleet = [
+  {bus_id:"KA-25-F-101",from:"Haliyal",to:"Dharwad", departure:"06:30 AM",distance_km:98.5, fare_rs:120,pq:mkQ()},
+  {bus_id:"KA-25-F-202",from:"Haliyal",to:"Dandeli", departure:"07:15 AM",distance_km:24.0, fare_rs:35, pq:mkQ()},
+  {bus_id:"KA-25-F-303",from:"Haliyal",to:"Belgaum", departure:"08:00 AM",distance_km:148.3,fare_rs:180,pq:mkQ()},
+  {bus_id:"KA-25-F-404",from:"Haliyal",to:"Hubli",   departure:"09:00 AM",distance_km:120.0,fare_rs:140,pq:mkQ()},
+  {bus_id:"KA-25-F-505",from:"Haliyal",to:"Ramnagar",departure:"10:30 AM",distance_km:312.0,fare_rs:380,pq:mkQ()},
+];
+
+let selBusIdx   = -1;
+let selPaxName  = '';
+let dashBusIdx  = 0;
+
+function ts() {
+  const d=new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function pad(n){return String(n).padStart(2,'0');}
+
+/* ═══ PAGE 1 ═══ */
+function renderPage1() {
+  const grid = document.getElementById('buses-grid');
+  grid.innerHTML='';
+  fleet.forEach((b,i)=>{
+    const pct = b.pq.size/MAX_SEATS;
+    const full = b.pq.size>=MAX_SEATS;
+    const stTxt = full?'Full':pct>=.8?'Nearly Full':'Available';
+    const stCls = full?'full-s':pct>=.8?'nearly':'avail';
+    const fillC = pct>.8?'danger':pct>.5?'warn':'';
+    const sel   = selBusIdx===i;
+    const c = document.createElement('div');
+    c.className=`bus-card${sel?' selected':''}${full?' full':''}`;
+    c.innerHTML=`
+      <div class="bc-top">
+        <div>
+          <div class="bc-id">${b.bus_id}</div>
+          <div class="bc-route">
+            <span class="from">${b.from}</span>
+            <span class="arrow">→</span>
+            <span class="to">${b.to}</span>
+          </div>
+        </div>
+        <div class="bc-status ${stCls}">${stTxt}</div>
+      </div>
+      <div class="bc-body">
+        <div class="bc-info-row">
+          <div class="bc-info-item"><div class="val">${b.departure}</div><div class="lbl">Departs</div></div>
+          <div class="bc-info-item"><div class="val">${b.distance_km}km</div><div class="lbl">Distance</div></div>
+          <div class="bc-info-item"><div class="val">₹${b.fare_rs}</div><div class="lbl">Fare</div></div>
+        </div>
+        <div class="seat-bar-wrap">
+          <div class="seat-bar-label"><span>${b.pq.size}/${MAX_SEATS} seats</span><span>${Math.round(pct*100)}% full</span></div>
+          <div class="seat-bar"><div class="seat-bar-fill ${fillC}" style="width:${pct*100}%"></div></div>
+        </div>
+        <button class="select-btn" onclick="selectBus(${i})" ${full?'disabled':''}>
+          ${sel?'✓ Selected':full?'Bus Full':'Select This Bus'}
+        </button>
+      </div>`;
+    grid.appendChild(c);
+  });
+  refreshConfirmBar();
+}
+
+function onNameChange() {
+  selPaxName = document.getElementById('pax-name').value.trim();
+  document.getElementById('hdr-pax').textContent = selPaxName||'—';
+  refreshConfirmBar();
+}
+
+function selectBus(i) {
+  if (!document.getElementById('pax-name').value.trim()) {
+    showToast('⚠ Please enter your name first!','error'); return;
+  }
+  if (fleet[i].pq.size>=MAX_SEATS) return;
+  selBusIdx=i; renderPage1();
+}
+
+function refreshConfirmBar() {
+  const bar=document.getElementById('confirm-bar');
+  if (selBusIdx<0||!selPaxName){bar.style.display='none';return;}
+  const b=fleet[selBusIdx];
+  bar.style.display='flex';
+  document.getElementById('cb-pax').textContent  = selPaxName;
+  document.getElementById('cb-bus').textContent  = b.bus_id;
+  document.getElementById('cb-dest').textContent = b.to;
+  document.getElementById('cb-fare').textContent = '₹'+b.fare_rs;
+}
+
+function bookSeat() {
+  if (!selPaxName||selBusIdx<0) return;
+  const b=fleet[selBusIdx];
+  const seat=pq_enqueue(b.pq,selPaxName);
+  if (seat<0){showToast('Bus is full!','error');return;}
+  clog('enq',`ENQUEUE ► ${selPaxName} → ${b.bus_id} Seat ${seat}`);
+  showTicket(selPaxName,b,seat);
+  renderPage1();
+}
+
+/* ═══ TICKET ═══ */
+function showTicket(name,bus,seat) {
+  document.getElementById('tk-seat').textContent  = seat;
+  document.getElementById('tk-name').textContent  = name;
+  document.getElementById('tk-busid').textContent = bus.bus_id;
+  document.getElementById('tk-to').textContent    = bus.to;
+  document.getElementById('tk-dep').textContent   = bus.departure;
+  document.getElementById('tk-fare').textContent  = '₹'+bus.fare_rs;
+  document.getElementById('tk-time').textContent  = ts();
+  document.getElementById('ticket-modal').classList.add('open');
+}
+function closeTicket(){document.getElementById('ticket-modal').classList.remove('open');}
+function goToDashboard(){closeTicket();dashBusIdx=selBusIdx>=0?selBusIdx:0;goPage(2);}
+
+/* ═══ PAGE 2 ═══ */
+function renderPage2() {
+  renderBspList(); renderBusInfo(); renderQueueMem(); renderPaxList();
+}
+
+function renderBspList() {
+  const list=document.getElementById('bsp-list');
+  list.innerHTML='';
+  fleet.forEach((b,i)=>{
+    const full=b.pq.size>=b.pq.capacity;
+    const d=document.createElement('div');
+    d.className=`bsp-item${dashBusIdx===i?' active':''}`;
+    d.onclick=()=>{dashBusIdx=i;renderPage2();};
+    d.innerHTML=`
+      <div>
+        <div class="bi-id">${b.bus_id}</div>
+        <div class="bi-dest">→ ${b.to}</div>
+      </div>
+      <span class="bi-badge${full?' full-b':''}">${b.pq.size}/${MAX_SEATS}</span>`;
+    list.appendChild(d);
+  });
+}
+
+function renderBusInfo() {
+  const b=fleet[dashBusIdx];
+  document.getElementById('bih-title').textContent = b.bus_id;
+  document.getElementById('bih-sub').textContent   = `${b.from} → ${b.to}`;
+  document.getElementById('bih-occ').textContent   = b.pq.size;
+  document.getElementById('bih-free').textContent  = MAX_SEATS-b.pq.size;
+  document.getElementById('bih-route').textContent = `${b.from} → ${b.to}`;
+  document.getElementById('bih-dep').textContent   = b.departure;
+  document.getElementById('bih-dist').textContent  = b.distance_km+' km';
+  document.getElementById('bih-fare').textContent  = '₹'+b.fare_rs;
+}
+
+function renderQueueMem() {
+  const b=fleet[dashBusIdx];
+  document.getElementById('qm-bid').textContent   = b.bus_id;
+  document.getElementById('qm-front').textContent = b.pq.front;
+  document.getElementById('qm-size').textContent  = b.pq.size;
+  const wrap=document.getElementById('qm-slots');
+  wrap.innerHTML='';
+  for(let i=0;i<MAX_SEATS;i++){
+    const d=document.createElement('div');
+    d.className='qs'+(b.pq.seats[i].is_occupied?' occ':'');
+    d.title=b.pq.seats[i].is_occupied?b.pq.seats[i].name:'Empty';
+    d.textContent=i+1;
+    wrap.appendChild(d);
+  }
+}
+
+function renderPaxList() {
+  const b=fleet[dashBusIdx];
+  document.getElementById('pax-count').textContent=b.pq.size+' passenger'+(b.pq.size!==1?'s':'');
+  const wrap=document.getElementById('pax-table-wrap');
+  const pax=b.pq.seats.filter(s=>s.is_occupied);
+  if(!pax.length){
+    wrap.innerHTML=`<div class="empty-msg"><div class="em-icon">🪑</div>No passengers yet on this bus.</div>`;
+    return;
+  }
+  const rows=pax.map(p=>`
+    <tr>
+      <td><span class="pax-seat-badge">${p.seat_num}</span></td>
+      <td class="pax-name">${p.name}</td>
+      <td class="pax-time">${p.boarded_at}</td>
+      <td><button class="remove-btn" onclick="removeByName(${JSON.stringify(p.name)})">Remove</button></td>
+    </tr>`).join('');
+  wrap.innerHTML=`
+    <table class="pax-table">
+      <thead><tr><th>Seat</th><th>Passenger Name</th><th>Boarded At</th><th>Action</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function addPassenger() {
+  const name=document.getElementById('add-name').value.trim();
+  if(!name){showToast('Enter passenger name','error');return;}
+  const b=fleet[dashBusIdx];
+  const seat=pq_enqueue(b.pq,name);
+  if(seat<0){showToast('Bus is full!','error');return;}
+  document.getElementById('add-name').value='';
+  clog('enq',`ENQUEUE ► ${name} → ${b.bus_id} Seat ${seat}`);
+  showToast(`✓ ${name} added — Seat ${seat}`,'success');
+  renderPage2();
+}
+
+function dequeuePassenger() {
+  const b=fleet[dashBusIdx];
+  const p=pq_dequeue(b.pq);
+  if(!p){showToast('No passengers to dequeue','error');return;}
+  clog('deq',`DEQUEUE ◄ ${p.name} (Seat ${p.seat_num}) alighted`);
+  showToast(`${p.name} — Seat ${p.seat_num} dequeued`,'');
+  renderPage2();
+}
+
+function removeByName(name) {
+  const b=fleet[dashBusIdx];
+  const seat=pq_remove_by_name(b.pq,name);
+  if(seat<0){showToast('Passenger not found','error');return;}
+  clog('deq',`REMOVE ✕ ${name} from Seat ${seat}`);
+  showToast(`${name} removed from Seat ${seat}`,'success');
+  renderPage2();
+}
+
+/* ═══ Nav ═══ */
+function goPage(n){
+  document.getElementById('page1').classList.toggle('active',n===1);
+  document.getElementById('page2').classList.toggle('active',n===2);
+  if(n===2) renderPage2();
+}
+
+/* ═══ Log ═══ */
+function clog(type,msg){
+  const box=document.getElementById('log-body');
+  const d=document.createElement('div');
+  d.className='log-'+type;
+  d.textContent=`[${ts()}] ${msg}`;
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+
+/* ═══ Toast ═══ */
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ═══ Boot ═══ */
+renderPage1();
+clog('inf','[C Backend] 5 buses initialized — Haliyal fleet');
+clog('inf','pq_init() × 5 — capacity=20 per bus');
+</script>
+</body>
+</html>
